@@ -1,10 +1,4 @@
 import requests
-from pathlib import Path
-
-# Find the repository root directory
-current_file = Path(__file__)
-# Go up from current script location to find the root (where the script is in /scripts/)
-repo_root = current_file.parent.parent
 
 # Toronto Open Data is stored in a CKAN instance. It's APIs are documented here:
 # https://docs.ckan.org/en/latest/api/
@@ -30,7 +24,7 @@ for _, resource in enumerate(package["result"]["resources"]):
         resource_dump_data = requests.get(url).text
 
         # Save the CSV data to file
-        save_path = repo_root / "data" / "raw_data" / f"delay_data_{count}.csv"
+        save_path = f"../data/raw_data/delay_data_{count}.csv"
         with open(save_path, 'w') as f:
             f.write(resource_dump_data)
 

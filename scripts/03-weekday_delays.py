@@ -1,13 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from pathlib import Path
-import numpy as np
 
-# Find the repository root directory
-current_file = Path(__file__)
-# Go up from current script location to find the root
-repo_root = current_file.parent.parent
-data_path = repo_root / "data" / "analysis_data" / "2025plus_data.csv"
+data_path = "../data/analysis_data/2025plus_data.csv"
 
 # Load the dataset
 df = pd.read_csv(data_path)
@@ -61,7 +55,7 @@ plt.title('Delays are evenly spread out throughout the week', fontsize=16)
 plt.axis('equal')
 
 # Save the figure to the appropriate location
-save_path = repo_root / "outputs" / "03-weekday_delays.png"
+save_path = output_path = "../outputs/03-weekday_delays.png"
 plt.savefig(save_path, bbox_inches='tight', dpi=300)
 
 # Print only necessary output (matching the style of the reference code)

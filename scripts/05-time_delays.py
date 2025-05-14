@@ -2,14 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-from pathlib import Path
 
-# Find the repository root directory
-current_file = Path(__file__)
-# Go up from current script location to find the root
-repo_root = current_file.parent.parent
-
-data_path = repo_root / "data" / "analysis_data" / "2025plus_data.csv"
+data_path = "../data/analysis_data/2025plus_data.csv"
 
 # Load the data
 data = pd.read_csv(data_path)
@@ -85,7 +79,7 @@ for i, count in enumerate(hour_counts['Count']):
         ax.text(i, count + 1, str(count), ha='center', fontsize=10)
 
 # Save the figure
-save_path = repo_root / "outputs" / "05-delay_time_barchart.png"
+save_path = "../outputs/05-delay_time_barchart.png"
 plt.savefig(save_path, bbox_inches='tight', dpi=300)
 
 print(f"Saved delay times bar chart to file: {save_path}")

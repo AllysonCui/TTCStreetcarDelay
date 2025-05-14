@@ -1,21 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from pathlib import Path
 import calendar
 
-# Set matplotlib backend to a non-interactive one to avoid PyCharm issues
-import matplotlib
-
-matplotlib.use('Agg')  # Use non-interactive backend
-
-# Find the repository root directory
-current_file = Path(__file__)
-# Go up from current script location to find the root
-repo_root = current_file.parent.parent
-
 # Define path to data file
-data_file = repo_root / "data" / "analysis_data" / "2025plus_data.csv"
+data_file = "../data/analysis_data/2025plus_data.csv"
 
 # Load the data
 df = pd.read_csv(data_file)
@@ -163,16 +152,14 @@ ax.set_yticklabels(y_labels)
 # Add gridlines
 ax.grid(axis='y', linestyle='-', alpha=0.2)
 
-# Always add the legend, regardless of the number of years
+# Add the legend, regardless of the number of years
 ax.legend(loc='upper left')
 
 # Adjust layout
 plt.tight_layout()
 
 # Save the figure
-output_dir = repo_root / "outputs"
-output_dir.mkdir(exist_ok=True)
-output_path = output_dir / "02-monthly_delays.png"
+output_path = "../outputs/02-monthly_delays.png"
 plt.savefig(output_path, dpi=300)
 print(f"Figure saved to: {output_path}")
 

@@ -1,13 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
-from pathlib import Path
 
-# Find the repository root directory
-current_file = Path(__file__)
-# Go up from current script location to find the root
-repo_root = current_file.parent.parent
-data_path = repo_root / "data" / "analysis_data" / "2025plus_data.csv"
+data_path = "../data/analysis_data/2025plus_data.csv"
 
 # Load the data
 data = pd.read_csv(data_path)
@@ -71,7 +65,7 @@ total_records = len(station_counts)
 plt.figtext(0.5, 0.05, f'1 - 15 / {total_records}', ha='center')
 
 # Save the figure
-save_path = repo_root / "outputs" / "06-delay_stations.png"
+save_path = "../outputs/06-delay_stations.png"
 plt.savefig(save_path, bbox_inches='tight', dpi=300)
 
 # Print output

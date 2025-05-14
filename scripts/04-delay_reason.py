@@ -1,9 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
 import squarify
 import seaborn as sns
-from pathlib import Path
 
 
 def categorize_incidents(df):
@@ -32,7 +30,7 @@ def categorize_incidents(df):
     return df
 
 
-def create_treemap(df, repo_root):
+def create_treemap(df):
     # Count incidents by category
     category_counts = df['Category'].value_counts().to_dict()
 
@@ -64,14 +62,14 @@ def create_treemap(df, repo_root):
     plt.axis('off')
 
     # Save the figure to the appropriate location
-    save_path = repo_root / "outputs" / "04-delay_incidents_treemap.png"
+    save_path = "../outputs/04-delay_incidents_treemap.png"
     plt.savefig(save_path, bbox_inches='tight', dpi=300)
     plt.close()
 
     print("Treemap saved as 'delay_incidents_treemap.png'")
 
 # Function to analyze and create stacked bar chart
-def create_category_bar_chart(df, repo_root):
+def create_category_bar_chart(df):
 
     # Group by code and count occurrences
     code_counts = df['Code'].value_counts().reset_index()
@@ -106,19 +104,14 @@ def create_category_bar_chart(df, repo_root):
     plt.tight_layout()
 
     # Save the figure to the appropriate location
-    save_path = repo_root / "outputs" / "04-top_delay_codes.png"
+    save_path = "../outputs/04-top_delay_codes.png"
     plt.savefig(save_path, bbox_inches='tight', dpi=300)
     plt.close()
 
     print("Bar chart saved as 'top_delay_codes.png'")
 
 
-# Find the repository root directory
-current_file = Path(__file__)
-# Go up from current script location to find the root
-repo_root = current_file.parent.parent
-
-data_path = repo_root / "data" / "analysis_data" / "2025plus_data.csv"
+data_path = "../data/analysis_data/2025plus_data.csv"
 
 # Load the main dataset directly from the specified path
 df = pd.read_csv(data_path)
@@ -127,8 +120,8 @@ df = pd.read_csv(data_path)
 df = categorize_incidents(df)
 
 # Create and save treemap
-create_treemap(df, repo_root)
+create_treemap(df)
 
-create_category_bar_chart(df, repo_root)
+create_category_bar_chart(df)
 
 print("Analysis complete!")

@@ -1,24 +1,14 @@
 import pandas as pd
-from pathlib import Path
-import glob
 
 
 def merge_2025plus_delay_datasets():
 
-    # Find the repository root directory
-    current_file = Path(__file__)
-    # Go up from current script location to find the root
-    repo_root = current_file.parent.parent
-
     # Input file paths
-    first_dataset_path = repo_root / "data" / "raw_data" / "delay_data_0.csv"
-    second_dataset_path = repo_root / "data" / "raw_data" / "delay_data_1.csv"
+    first_dataset_path = "../data/raw_data/delay_data_0.csv"
+    second_dataset_path = "../data/raw_data/delay_data_1.csv"
 
     # Output file path
-    output_path = repo_root / "data" / "analysis_data" / "2025plus_data.csv"
-
-    # Create the output directory if it doesn't exist
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path = "../data/analysis_data/2025plus_data.csv"
 
     # Read the datasets
     df_delays = pd.read_csv(first_dataset_path)
