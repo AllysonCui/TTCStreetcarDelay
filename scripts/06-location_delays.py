@@ -9,8 +9,8 @@ data = pl.read_csv(data_path)
 # Count delays by station
 station_counts = (
     data.group_by("Station")
-    .count()
-    .rename({"count": "Record Count"})
+    .len()  # Use len() instead of count() which is deprecated
+    .rename({"len": "Record Count"})  # Updated column name
     .sort("Record Count", descending=True)
 )
 

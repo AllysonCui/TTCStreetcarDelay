@@ -28,7 +28,7 @@ def categorize_incidents(df):
 
     # Apply the mapping function to get categories
     df = df.with_columns(
-        pl.col("code_prefix").map_dict({
+        pl.col("code_prefix").replace({
             'ET': 'Equipment [ET]',
             'MT': 'Miscellaneous Operations [MT]',
             'PT': 'Plant [PT]',
@@ -44,9 +44,8 @@ def create_treemap(df):
     # Count incidents by category
     category_counts = (
         df.group_by("Category")
-        .count()
-        .sort("count", descending=True)
-        .collect()
+        .len()
+        .sort("len", descending=True)
     )
 
     # Convert to dictionary for treemap
@@ -89,12 +88,17 @@ def create_treemap(df):
 
 # Function to analyze and create stacked bar chart
 def create_category_bar_chart(df):
+    # Fill any null values in the Description column with a placeholder
+    df = df.with_columns(
+        pl.col("Description").fill_null("Unknown")
+    )
+
     # Group by code and count occurrences
     code_counts = (
         df.group_by("Code")
-        .count()
-        .sort("count", descending=True)
-        .rename({"count": "Count"})
+        .len()
+        .sort("len", descending=True)
+        .rename({"len": "Count"})
     )
 
     # Add description and category
@@ -116,7 +120,11 @@ def create_category_bar_chart(df):
 
     # Add descriptions as annotations
     for i, (_, row) in enumerate(top_codes_pd.iterrows()):
-        plt.annotate(f"{row['Description'][:]}",
+        # Handle any None values in Description
+        description = row['Description'] if row[
+                                                'Description'] is not None else "Unknown"
+
+        plt.annotate(f"{description}",
                      xy=(i, row['Count']),
                      xytext=(0, 5),
                      textcoords="offset points",

@@ -2,7 +2,11 @@
 title: "Analyzing Patterns and Causes of TTC Streetcar Delays: January-March 2025"
 author: "Allyson Cui"
 date: "May 16, 2025"
-format: pdf
+format: 
+  pdf:
+    keep-tex: false
+    keep-md: false
+    clean: true
 abstract: "This study examines the Toronto Transit Commission (TTC) streetcar delay data from January to March 2025. By analyzing over 4,000 delay incidents, we identify patterns in delay frequency, location, time, and cause. Our findings reveal that miscellaneous operational issues account for the majority of delays (around 60%), followed by transportation, security, and equipment-related problems. Delays occur consistently throughout the week, with slight variations by day. Time analysis shows peak delay periods in the afternoon (2-3 PM) and evening (8-9 PM). Spatially, Broadview Station experiences the highest number of delays. These insights can inform TTC's resource allocation and preventive maintenance strategies to improve service reliability and passenger experience."
 bibliography: references.bib
 ---

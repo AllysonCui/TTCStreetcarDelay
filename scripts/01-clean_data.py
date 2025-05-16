@@ -21,7 +21,7 @@ def merge_2025plus_delay_datasets():
 
     # Clean up the Description column by replacing the malformed characters
     df_codes = df_codes.with_columns(
-        pl.col("Description").str.replace_all("ГўВЂВ"", "-")
+        pl.col("Description").str.replace_all('ГўВЂВ"', "-")
     )
 
     # Merge the datasets based on the 'Code' column

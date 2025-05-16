@@ -23,27 +23,30 @@ data = data.with_columns(
     ).alias("Hour")
 )
 
-# Create a dataframe with all hours (0-23)
-all_hours = pl.DataFrame({"Hour": pl.arange(0, 24, dtype=pl.Int32)})
+# Create a dataframe with all hours (0-23) using list and explicitly set dtype to Int32
+all_hours = pl.DataFrame({"Hour": pl.Series(range(24), dtype=pl.Int32)})
 
 # Count delays by hour
 hour_counts = (
     data.group_by("Hour")
-    .count()
-    .rename({"count": "Count"})
+    .len()  # Use len() instead of count() which is deprecated
+    .rename({"len": "Count"})
 )
 
 # Merge with all_hours to ensure we have all 24 hours
-hour_counts = all_hours.join(hour_counts, on="Hour", how="left").fill_null(0)
+# Explicitly set coalesce=True to address the deprecation warning
+hour_counts = all_hours.join(hour_counts, on="Hour", how="left", coalesce=True).fill_null(0)
 
 # Convert "Count" column to integer
 hour_counts = hour_counts.with_columns(
     pl.col("Count").cast(pl.Int32)
 )
 
-# Create time range strings (e.g., "00:00 - 00:59")
+# Create time range strings (e.g., "00:00 - 00:59") using string formatting
+# Simpler approach using string concatenation instead of pl.format
 hour_counts = hour_counts.with_columns(
-    pl.format("{:02d}:00 - {:02d}:59", pl.col("Hour"), pl.col("Hour")).alias("Time Range")
+    (pl.col("Hour").cast(pl.Utf8).str.zfill(2) + ":00 - " +
+     pl.col("Hour").cast(pl.Utf8).str.zfill(2) + ":59").alias("Time Range")
 )
 
 # Sort by Hour

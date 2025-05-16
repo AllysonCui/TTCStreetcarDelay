@@ -19,7 +19,7 @@ df = df.with_columns([
 # Count delays by year and month
 monthly_counts = (
     df.group_by(["Year", "Month"])
-    .count()
+    .len()
     .rename({"count": "Count"})
 )
 

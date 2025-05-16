@@ -15,14 +15,13 @@ df = df.with_columns(
 # Count unique Date_Day combinations per day to get occurrences
 day_occurrences = (
     df.group_by("Day")
-    .agg(pl.n_unique("Date_Day"))
-    .rename({"n_unique": "Occurrences"})
+    .agg(pl.col("Date_Day").n_unique().alias("Occurrences"))  # Directly name the column
 )
 
 # Count delays by day of the week
 day_counts = (
     df.group_by("Day")
-    .count()
+    .len()
     .rename({"count": "Count"})
 )
 

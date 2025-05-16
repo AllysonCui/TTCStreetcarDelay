@@ -1,0 +1,14 @@
+# requirements.txt for UV package management
+
+# Data processing
+polars~=0.20.4  # Fast DataFrame library (replacement for pandas)
+pandas~=2.2.0   # Still needed for some operations
+pyarrow~=16.0.0  # Required for Polars to pandas conversion
+matplotlib~=3.8.0  # Plotting library
+seaborn~=0.13.0  # Statistical data visualization
+numpy~=1.26.0  # Numerical computing
+squarify~=0.4.3  # Treemap visualization
+requests~=2.31.0  # HTTP library for API requests
+
+# Note: Install with UV using:
+# uv pip install -r requirements.txt

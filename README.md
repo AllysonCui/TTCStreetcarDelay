@@ -3,6 +3,12 @@
 ## Overview
 This project analyzes the TTC streetcar delay data from 2025, looking at patterns and trends across various dimensions including time, location, day of week, and cause.
 
+## Set Up
+
+1. Install UV if not already installed: pip install uv
+2. Create `requirments.txt` under the repository's main directory
+3. Install dependencies with UV: uv pip install -r requirements.txt
+
 ## Running the Analysis
 Execute the scripts in numerical order:
 
