@@ -36,29 +36,19 @@ By systematically examining these aspects, this study aims to contribute to the 
 
 The data used in this analysis comes from the Toronto Open Data Portal's "TTC Streetcar Delay Data" dataset, which provides detailed records of delay incidents across the TTC streetcar network. The dataset is published by the Toronto Transit Commission as part of their open data initiative.
 
-The primary dataset includes the following fields:
-
-- **_id**: Unique identifier for each delay record
-- **Date**: The date when the delay occurred (YYYY-MM-DD format)
-- **Line**: The streetcar route number and name (e.g., "504 KING")
-- **Time**: The time when the delay occurred (24-hour format)
-- **Day**: Day of the week
-- **Station**: Location description where the delay occurred
-- **Code**: TTC delay code (categorized alphanumeric code)
-- **Min Delay**: Delay in minutes to the schedule for the following vehicle
-- **Min Gap**: Time length in minutes from the vehicle ahead of the following vehicle
-- **Bound**: Direction of the streetcar route (E, W, N, S)
-- **Vehicle**: Vehicle number
-
-Here's an example record from the dataset:
-
-| _id | Date       | Line        | Time  | Day       | Station             | Code  | Min Delay | Min Gap | Bound | Vehicle |
-|-----|------------|-------------|-------|-----------|---------------------|-------|-----------|---------|-------|---------|
-| 1   | 2025-01-01 | 504 KING    | 02:10 | Wednesday | KING AND PARLIAMENT | MTSAN | 10        | 20      | W     | 4569    |
-| 2   | 2025-01-01 | 506 CARLTON | 02:50 | Wednesday | COLLEGE AND HURON   | MTAFR | 34        | 49      | E     | 4480    |
-| 3   | 2025-01-01 | 504 KING    | 03:11 | Wednesday | KING AND QUEEN EAST | MTIE  | 15        | 30      | E     | 4629    |
-| 4   | 2025-01-01 | 501 QUEEN   | 05:14 | Wednesday | QUEEN AND DUFFERIN  | MTAFR | 36        | 55      | E     | 4455    |
-| 5   | 2025-01-01 | 504 KING    | 06:14 | Wednesday | LESLIE CARHOUSE     | MTVIS | 10        | 20      | E     | 4483    |
+| Field Name | Description | Example |
+|------|-------------|------------|
+| _id | Unique identifier for the record | 1 |
+| Date | Date (YYYY/MM/DD) | 2025-01-01 |
+| Line | TTC streetcar line | 504 KING |
+| Time | Time (24h clock) | 02:10 |
+| Day | Name of the day of the week | Wednesday |
+| Station | TTC streetcar station/stop name | KING AND PARLIAMENT |
+| Code | TTC delay code | MTSAN |
+| Min Delay | Delay (in minutes) to the schedule for the following vehicle | 10 |
+| Min Gap | Time length (in minutes) from the vehicle ahead | 20 |
+| Bound | Direction of the route | W |
+| Vehicle | Vehicle number | 4569 |
 
 The first record indicates a 10-minute delay on the 504 King streetcar line at King and Parliament on Wednesday, January 1, 2025, at 2:10 AM, with a delay code of MTSAN (Unsanitary Vehicle).
 
@@ -66,19 +56,11 @@ The first record indicates a 10-minute delay on the 504 King streetcar line at K
 
 A supplementary dataset provides descriptions for the delay codes, with fields:
 
-- **_id**: Unique identifier for each code
-- **CODE**: The alphanumeric delay code
-- **DESCRIPTION**: Human-readable description of the delay cause
-
-For example:
-
-| _id | CODE  | DESCRIPTION               |
-|-----|-------|----------------------------|
-| 1   | ETAC  | HVAC                      |
-| 2   | ETAR  | ARTICULATION (ALRV)       |
-| 3   | ETAX  | AUXILARY POWER SUPPLY     |
-| 4   | ETBO  | BODY                      |
-| 5   | ETCA  | COMPRESSED AIR            |
+| Field Name  | Description                         | Example                           |
+|--------------------|----------------------------------|-----------------------------------|
+| _id         | Unique identifier for the code      | 6                                 |
+| CODE        | Delay code                          | ETCE                              |
+| DESCRIPTION | Humanized description for the code  | COMMUNICATION EQUIPMENT<br>(INCLUDES STOP ANNOUNCEMENT) |
 
 The delay codes are categorized with prefixes that indicate the general category of the delay:
 
@@ -93,10 +75,15 @@ It's important to note that the directory on delay codes does not contain explan
 ### Data Processing and Analysis
 
 The data processing pipeline for this analysis involved several steps:
-1. Obtaining the raw data from Toronto's Open Data Portal using their API.
+
+1. Obtaining the raw data from Toronto's Open Data Portal using their API. Data from previous years are in xlsx format and couldn't be automatically extracted by API.
+
 2. Merging the delay incidents with their corresponding code descriptions, handling malformed characters, and standardizing formats.
+
 3. Deriving new features including hour of day and categorical grouping of delay codes.
+
 4. Performing various aggregations to identify patterns across time, space, and delay categories.
+
 5. Creating informative visualizations to represent the findings.
 
 Python was used for all data processing and analysis, with pandas for data manipulation, matplotlib and seaborn for visualization, and specialized libraries like squarify for treemap visualizations. The analysis scripts were structured to follow a consistent pattern of loading, processing, analyzing, and visualizing the data.
@@ -124,9 +111,7 @@ The hourly delay distribution challenges typical assumptions about when transit 
 
 *Figure 2: Distribution of delay incidents by hour of day.*
 
-The 2-3 PM peak occurs before the afternoon rush, suggesting that preparing for peak service may encounter more problems than handling peak crowds. The 8-9 PM peak happens when supervisor coverage is typically reduced, which may explain the higher delay rates.
-
-Early morning hours (4-6 AM) show consistent delays despite low ridership and traffic. This points to internal issues like vehicle deployment and staff availability at the start of service.
+The 2-3 PM peak occurs before the afternoon rush, suggesting that preparing for peak service may encounter more problems than handling peak crowds. The 8-9 PM peak happens when supervisor coverage is typically reduced, which may explain the higher delay rates. Early morning hours (4-6 AM) show consistent delays despite low ridership and traffic. This points to internal issues like vehicle deployment and staff availability at the start of service.
 
 The relatively small variation between hours suggests that delay factors are present throughout the day rather than being strongly tied to specific peak periods.
 
@@ -178,57 +163,27 @@ Just four types of incidents account for over 40% of all delays:
 3. **Disorderly Patron (STDP)**: Over 300 incidents involving passenger behavior issues
 4. **Unsanitary Vehicle (MTSAN)**: Over 300 incidents requiring vehicle cleaning
 
-The high rate of Auto Foul Rail incidents points to consistent problems with track-vehicle interfaces. The frequency of Disorderly Patron delays highlights how social factors affect transit reliability.
+This analysis reveals that Toronto's streetcar system struggles most with its operations at the street level. Physical obstacles in tracks, necessary route changes due to construction, passenger-related disruptions, and vehicle cleanliness issues collectively create more service problems than mechanical failures. This suggests that reliability improvements should focus on street-level operations and passenger management rather than solely pursuing vehicle or infrastructure upgrades.
 
 ## Discussion
 
-### Spatial Concentration of Delays
+Delays cluster at major stations like Broadview, Spadina, and Dundas West where many routes connect. These busy transfer points need special attention, including better staff training and smarter scheduling. Loop terminals such as Humber, Kingston, and Sunnyside also show high delay rates, suggesting problems with turn-around operations that can affect the entire system.
 
-The concentration of delays at major stations such as Broadview, Spadina, and Dundas West suggests that these interchange points may benefit from targeted interventions. These stations serve as connection points between multiple routes and transportation modes, creating complex operational environments. The TTC could consider:
+The times with most delays aren't the usual rush hours. Most problems happen from 2-3 PM when service transitions to evening peak, and again from 8-9 PM when fewer supervisors are working. Early morning (4-6 AM) also shows many delays despite light traffic, pointing to issues with getting vehicles and crews ready for the day. February's higher delay rate shows how winter conditions build up over time, calling for better winter maintenance and possibly more staff during cold months.
 
-1. Implementing specialized staff training for operators and supervisors at these high-delay locations
-2. Reviewing scheduling practices at interchange points to build in appropriate recovery time
+Most delays come from everyday operational issues rather than broken equipment. Track blockages and route changes due to construction cause the most disruptions, suggesting we need better track maintenance and smoother handling of diversions. Passenger behavior also causes significant delays, showing that better customer management could improve service. While equipment problems cause fewer delays, targeted maintenance could still help, especially at trouble spots and during problem times.
 
-The high incidence of delays at loop terminals (Humber, Kingston, Sunnyside) also suggests that turn-around operations may need review. Delays at these points can cascade throughout the system, affecting multiple routes.
-
-### Temporal Insights
-
-The time-of-day analysis reveals several critical periods for delay management:
-
-???
-
-The monthly spike in February aligns with typical winter conditions in Toronto and highlights the need for seasonal preparedness strategies. The TTC might consider:
-
-1. Enhanced winter operational protocols specific to February conditions
-2. Preventive maintenance focused on cold-weather vulnerabilities
-3. Staffing adjustments to account for the historically higher February delay rates
-
-### Delay Causes and Potential Interventions
-
-The dominance of Miscellaneous Operations (MT) delays, particularly "Auto Foul Rail" (MTAFR) and "On Diversion" (MTDV), points to operational issues as the primary contributor to service disruptions. These operational delays often involve interactions between vehicles and the rail environment, suggesting that:
-
-1. Track maintenance schedules may need review to reduce instances of fouled rails
-2. Diversion management procedures could be streamlined to reduce delay impacts
-
-The high incidence of security-related delays (ST category), particularly "Disorderly Patron" (STDP), indicates that passenger behavior significantly impacts service reliability. If more funding is permitted, The TTC might consider:
-
-1. Expanding customer service training for operators to better manage disruptive situations
-2. Increasing security presence at high-incident locations identified in the spatial analysis
-
-Equipment-related delays (ET category), while less frequent, still represent significant service disruptions. A preventive maintenance program targeting the most common equipment failures could help reduce these incidents.
-
-### Limitations and Future Research
+## Limitations and Future Research
 
 This analysis has several limitations that should be acknowledged:
 
 1. The three-month time frame (January-March 2025) may not capture seasonal variations throughout the entire year.
 2. The lack of explanation for certain delay codes (those beginning with 'EF', 'MF', 'SF', 'TF', or 'PF') limits our understanding of some delay categories.
-3. The dataset does not include information on the number of passengers affected by each delay, which would help quantify the service impact.
 
 Future research could address these limitations by:
 
 1. Extending the analysis to a full year of data to capture seasonal patterns
-2. Incorporating passenger volume data to weigh delays by their impact
+2. Incorporating geographical data to better visualize the clusters
 3. Conducting comparative analysis with previous years to identify trends over time
 4. Investigating the relationship between weather conditions and specific delay types
 
