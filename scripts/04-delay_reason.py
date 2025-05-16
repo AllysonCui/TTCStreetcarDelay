@@ -1,4 +1,4 @@
-import pandas as pd
+import polars as pl
 import matplotlib.pyplot as plt
 import squarify
 import seaborn as sns
@@ -22,24 +22,42 @@ def categorize_incidents(df):
             return 'Other'
 
     # Create a new column with just the first two characters of the code
-    df['code_prefix'] = df['Code'].str[:2]
+    df = df.with_columns(
+        pl.col("Code").str.slice(0, 2).alias("code_prefix")
+    )
 
     # Apply the mapping function to get categories
-    df['Category'] = df['code_prefix'].apply(map_code_to_category)
+    df = df.with_columns(
+        pl.col("code_prefix").map_dict({
+            'ET': 'Equipment [ET]',
+            'MT': 'Miscellaneous Operations [MT]',
+            'PT': 'Plant [PT]',
+            'ST': 'Security [ST]',
+            'TT': 'Transportation [TT]'
+        }, default='Other').alias("Category")
+    )
 
     return df
 
 
 def create_treemap(df):
     # Count incidents by category
-    category_counts = df['Category'].value_counts().to_dict()
+    category_counts = (
+        df.group_by("Category")
+        .count()
+        .sort("count", descending=True)
+        .collect()
+    )
+
+    # Convert to dictionary for treemap
+    category_dict = {row[0]: row[1] for row in category_counts.rows()}
 
     # Prepare data for treemap
     labels = []
     sizes = []
 
     # Create sorted items for consistent order
-    sorted_items = sorted(category_counts.items(), key=lambda x: x[1],
+    sorted_items = sorted(category_dict.items(), key=lambda x: x[1],
                           reverse=True)
 
     for category, count in sorted_items:
@@ -68,27 +86,36 @@ def create_treemap(df):
 
     print("Treemap saved as 'delay_incidents_treemap.png'")
 
+
 # Function to analyze and create stacked bar chart
 def create_category_bar_chart(df):
-
     # Group by code and count occurrences
-    code_counts = df['Code'].value_counts().reset_index()
-    code_counts.columns = ['Code', 'Count']
+    code_counts = (
+        df.group_by("Code")
+        .count()
+        .sort("count", descending=True)
+        .rename({"count": "Count"})
+    )
 
     # Add description and category
-    code_desc_cat = df[['Code', 'Description', 'Category']].drop_duplicates()
-    code_analysis = pd.merge(code_counts, code_desc_cat, on='Code')
+    code_desc_cat = df.select(["Code", "Description", "Category"]).unique()
+
+    # Join counts with descriptions and categories
+    code_analysis = code_counts.join(code_desc_cat, on="Code")
 
     # Get top 15 codes
-    top_codes = code_analysis.sort_values('Count', ascending=False).head(15)
+    top_codes = code_analysis.head(15)
+
+    # Convert to pandas for matplotlib plotting
+    top_codes_pd = top_codes.to_pandas()
 
     # Create stacked bar chart
     plt.figure(figsize=(15, 8))
-    bars = plt.bar(top_codes['Code'], top_codes['Count'],
-                   color=sns.color_palette("Blues_d", len(top_codes)))
+    bars = plt.bar(top_codes_pd['Code'], top_codes_pd['Count'],
+                   color=sns.color_palette("Blues_d", len(top_codes_pd)))
 
     # Add descriptions as annotations
-    for i, (_, row) in enumerate(top_codes.iterrows()):
+    for i, (_, row) in enumerate(top_codes_pd.iterrows()):
         plt.annotate(f"{row['Description'][:]}",
                      xy=(i, row['Count']),
                      xytext=(0, 5),
@@ -114,7 +141,7 @@ def create_category_bar_chart(df):
 data_path = "../data/analysis_data/2025plus_data.csv"
 
 # Load the main dataset directly from the specified path
-df = pd.read_csv(data_path)
+df = pl.read_csv(data_path)
 
 # Categorize incidents
 df = categorize_incidents(df)
@@ -122,6 +149,7 @@ df = categorize_incidents(df)
 # Create and save treemap
 create_treemap(df)
 
+# Create and save bar chart
 create_category_bar_chart(df)
 
 print("Analysis complete!")

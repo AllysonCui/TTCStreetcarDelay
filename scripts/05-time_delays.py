@@ -1,50 +1,56 @@
-import pandas as pd
+import polars as pl
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 
 data_path = "../data/analysis_data/2025plus_data.csv"
 
-# Load the data
-data = pd.read_csv(data_path)
+# Load the data with polars
+data = pl.read_csv(data_path)
 
 # Extract hour from the 'Time' column
 # First, ensure the 'Time' column is in string format
-data['Time'] = data['Time'].astype(str)
+data = data.with_columns(
+    pl.col("Time").cast(pl.Utf8).alias("Time")
+)
 
 # Extract hour, handle 'None' values
-def extract_hour(time_str):
-    if time_str == 'None' or pd.isna(time_str):
-        return np.nan
-    time_parts = time_str.split(':')
-    if len(time_parts) >= 2:
-        try:
-            return int(time_parts[0])  # Extract just the hour as an integer
-        except ValueError:
-            return np.nan
-    return np.nan
-
-data['Hour'] = data['Time'].apply(extract_hour)
+data = data.with_columns(
+    pl.when(
+        (pl.col("Time") == "None") | pl.col("Time").is_null()
+    ).then(None).otherwise(
+        pl.col("Time").str.split(":").list.get(0).cast(pl.Int32)
+    ).alias("Hour")
+)
 
 # Create a dataframe with all hours (0-23)
-all_hours = pd.DataFrame({'Hour': range(24)})
+all_hours = pl.DataFrame({"Hour": pl.arange(0, 24, dtype=pl.Int32)})
 
 # Count delays by hour
-hour_counts = data['Hour'].value_counts().reset_index()
-hour_counts.columns = ['Hour', 'Count']
+hour_counts = (
+    data.group_by("Hour")
+    .count()
+    .rename({"count": "Count"})
+)
 
 # Merge with all_hours to ensure we have all 24 hours
-hour_counts = pd.merge(all_hours, hour_counts, on='Hour', how='left').fillna(0)
-hour_counts['Count'] = hour_counts['Count'].astype(int)
+hour_counts = all_hours.join(hour_counts, on="Hour", how="left").fill_null(0)
+
+# Convert "Count" column to integer
+hour_counts = hour_counts.with_columns(
+    pl.col("Count").cast(pl.Int32)
+)
 
 # Create time range strings (e.g., "00:00 - 00:59")
-def create_time_range(hour):
-    return f"{hour:02d}:00 - {hour:02d}:59"
-
-hour_counts['Time Range'] = hour_counts['Hour'].apply(create_time_range)
+hour_counts = hour_counts.with_columns(
+    pl.format("{:02d}:00 - {:02d}:59", pl.col("Hour"), pl.col("Hour")).alias("Time Range")
+)
 
 # Sort by Hour
-hour_counts = hour_counts.sort_values('Hour')
+hour_counts = hour_counts.sort("Hour")
+
+# Convert to pandas for plotting with seaborn
+hour_counts_pd = hour_counts.to_pandas()
 
 # Set up the figure and plot
 plt.figure(figsize=(14, 8))
@@ -56,7 +62,7 @@ ax = sns.barplot(
     y='Count',
     hue='Time Range',  # Use x variable for hue
     legend=False,      # Set legend=False to avoid duplicating the information
-    data=hour_counts
+    data=hour_counts_pd
 )
 
 # Rotate x-axis labels for better readability
@@ -74,7 +80,7 @@ plt.grid(axis='y', linestyle='--', alpha=0.7)
 plt.tight_layout()
 
 # Add data labels on top of each bar
-for i, count in enumerate(hour_counts['Count']):
+for i, count in enumerate(hour_counts_pd['Count']):
     if count > 0:  # Only add labels for bars with non-zero values
         ax.text(i, count + 1, str(count), ha='center', fontsize=10)
 

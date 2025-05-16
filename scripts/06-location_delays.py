@@ -1,26 +1,35 @@
-import pandas as pd
+import polars as pl
 import matplotlib.pyplot as plt
 
 data_path = "../data/analysis_data/2025plus_data.csv"
 
-# Load the data
-data = pd.read_csv(data_path)
+# Load the data with polars
+data = pl.read_csv(data_path)
 
 # Count delays by station
-station_counts = data['Station'].value_counts().reset_index()
-station_counts.columns = ['Station', 'Record Count']
+station_counts = (
+    data.group_by("Station")
+    .count()
+    .rename({"count": "Record Count"})
+    .sort("Record Count", descending=True)
+)
 
 # Handle any None or NaN values
-station_counts = station_counts.fillna({'Station': 'Unknown'})
-
-# Sort by Record Count in descending order
-station_counts = station_counts.sort_values('Record Count', ascending=False)
+station_counts = station_counts.with_columns(
+    pl.when(pl.col("Station").is_null())
+    .then(pl.lit("Unknown"))
+    .otherwise(pl.col("Station"))
+    .alias("Station")
+)
 
 # Display the top 15 stations with most delays
-top_stations = station_counts.head(15)[['Station', 'Record Count']].copy()
+top_stations = station_counts.head(15)
 
-# Make a rank column
-top_stations.insert(0, '#', range(1, len(top_stations) + 1))
+# Create a rank column
+top_stations = top_stations.with_row_index(name="#", offset=1)
+
+# Convert to pandas for matplotlib table
+top_stations_pd = top_stations.to_pandas()
 
 # Set up the figure and plot
 plt.figure(figsize=(12, 8))
@@ -32,12 +41,11 @@ ax.yaxis.set_visible(False)
 
 # Create the table
 table = plt.table(
-    cellText=top_stations.values,
+    cellText=top_stations_pd.values,
     colLabels=['#', 'Station', 'Record Count'],
     cellLoc='center',
     loc='center',
     colWidths=[0.1, 0.6, 0.3]
-    # Adjusted widths for the wider station column
 )
 
 # Style the table
@@ -57,8 +65,7 @@ for i, key in enumerate(table._cells):
         cell.set_facecolor('#f0f0f0')
 
 # Add title
-plt.title('Stations with the highest number of delays:', fontsize=14,
-          pad=20)
+plt.title('Stations with the highest number of delays:', fontsize=14, pad=20)
 
 # Add pagination indicator at the bottom
 total_records = len(station_counts)
@@ -74,4 +81,4 @@ plt.close()
 
 # Show the first few rows of the data for confirmation
 print("\nTop 5 stations with most delays:")
-print(top_stations.head())
+print(top_stations.head(5))

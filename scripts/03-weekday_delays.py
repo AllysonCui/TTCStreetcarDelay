@@ -1,34 +1,54 @@
-import pandas as pd
+import polars as pl
 import matplotlib.pyplot as plt
 
 data_path = "../data/analysis_data/2025plus_data.csv"
 
-# Load the dataset
-df = pd.read_csv(data_path)
+# Load the dataset with polars
+df = pl.read_csv(data_path)
 
 # Group by day and date to get unique days in the dataset
 # First, create a combined Date-Day identifier
-df['Date_Day'] = df['Date'] + '_' + df['Day']
+df = df.with_columns(
+    pl.concat_str([pl.col("Date"), pl.lit("_"), pl.col("Day")]).alias("Date_Day")
+)
 
-# Count total occurrences per day
-day_occurrences = df.groupby('Day')['Date_Day'].nunique()
+# Count unique Date_Day combinations per day to get occurrences
+day_occurrences = (
+    df.group_by("Day")
+    .agg(pl.n_unique("Date_Day"))
+    .rename({"n_unique": "Occurrences"})
+)
 
 # Count delays by day of the week
-day_counts = df['Day'].value_counts()
+day_counts = (
+    df.group_by("Day")
+    .count()
+    .rename({"count": "Count"})
+)
+
+# Join the counts and occurrences
+day_stats = day_counts.join(day_occurrences, on="Day")
 
 # Calculate average delays per day occurrence
-avg_delays_per_day = day_counts / day_occurrences
+day_stats = day_stats.with_columns(
+    (pl.col("Count") / pl.col("Occurrences")).alias("AvgDelaysPerDay")
+)
+
+# Convert to a dictionary for plotting
+day_avg_dict = {row[0]: row[3] for row in day_stats.rows()}
 
 # Calculate percentages for the pie chart
-total_avg = avg_delays_per_day.sum()
-day_percentages = (avg_delays_per_day / total_avg * 100).round(1)
+total_avg = sum(day_avg_dict.values())
+day_percentages = {day: round((value / total_avg * 100), 1) for day, value in day_avg_dict.items()}
 
 # Define colors for each day
 colors = ['#4285F4', '#80CBC4', '#E91E63', '#F57C00', '#FFC107', '#8BC34A', '#673AB7']
 
 # Create a custom order for days of the week
 days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-ordered_percentages = day_percentages.reindex(days_order)
+
+# Reorder percentages according to days_order
+ordered_percentages = [day_percentages.get(day, 0) for day in days_order]
 
 # Create figure with specific size for better proportions
 plt.figure(figsize=(8, 8))
@@ -55,7 +75,7 @@ plt.title('Delays are evenly spread out throughout the week', fontsize=16)
 plt.axis('equal')
 
 # Save the figure to the appropriate location
-save_path = output_path = "../outputs/03-weekday_delays.png"
+save_path = "../outputs/03-weekday_delays.png"
 plt.savefig(save_path, bbox_inches='tight', dpi=300)
 
 # Print only necessary output (matching the style of the reference code)

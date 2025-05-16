@@ -1,28 +1,28 @@
-# TTCStreetcarDelay
-Data source: https://open.toronto.ca/dataset/ttc-streetcar-delay-data/
+# TTC Streetcar Delay Analysis: Using Polars and UV for Efficient Data Processing
 
-### Understanding the source data
+## Overview
+This project analyzes the TTC streetcar delay data from 2025, looking at patterns and trends across various dimensions including time, location, day of week, and cause.
 
-**Streetcar**
+## Running the Analysis
+Execute the scripts in numerical order:
 
-|Field Name| Description                                                      |Example|
-|---|------------------------------------------------------------------|---|
-|_id| Unique identifier for the record                                 |1|
-|Date| Date (YYYY/MM/DD)                                                |2025-01-01|
-|Line| TTC subway line                                                  |504 KING|
-|Time| Time (24h clock)                                                 |02:10|
-|Day| Name of the day of the week                                      |Wednesday|
-|Station| TTC subway station name                                          |KING AND PARLIAMENT|
-|Code| TTC delay code                                                   |MTSAN|
-|Min Delay| Delay (in minutes) to the schedule for the following bus         |10|
-|Min Gap| Time length (in minutes) from the bus ahead of the following bus |20|
-|Bound| Direction of the bus route |W|
-|Vehicle| Vehicle number                                                   |4569|
+1. python `scripts/00-retrieve_data.py` - Downloads data from Toronto Open Data Portal
+2. python `scripts/01-clean_data.py` - Processes and merges the datasets
+3. python `scripts/02-monthly_delays.py` - Analyzes delays by month
+4. python `scripts/03-weekday_delays.py` - Analyzes delays by day of week
+5. python `scripts/04-delay_reason.py` - Analyzes causes of delays
+6. python `scripts/05-time_delays.py` - Analyzes delays by time of day
+7. python `scripts/06-location_delays.py` - Analyzes delays by location
 
-**Delay Code**
+## File Structure
 
-| Field Name  | Description                        | Example |
-|-------------|------------------------------------|---------|
-| _id         | Unique identifier for the code     | 6       |
-| CODE        | Delay code                         | ETCE    |
-| DESCRIPTION | Humanized description for the code | COMMUNICATION EQUIPMENT (INCLUDES STOP ANNOUNCEMENT)    | 
+The repo is structured as:
+- `data/raw_data` contains the raw data as obtained from the TTC delay dataset.
+- `data/analysis_data` contains the cleaned dataset that was constructed.
+- `outputs` contains the generated visualizations.
+- `scripts` contains the Python scripts used to retrieve, clean, and analyze data.
+- `other/llm` contains the dialogue between me and Claude (LLM).
+
+## Statement on LLM usage
+
+Claude is used to format the tables. No LLMs were used for the analysis itself.
