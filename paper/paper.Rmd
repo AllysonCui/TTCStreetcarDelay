@@ -141,7 +141,7 @@ This February spike likely reflects the accumulated effects of winter conditions
 
 The analysis of delay types shows that operational issues, not equipment failures, are the main problem (Figure 5).
 
-![Delay Incident Categories](../outputs/04-top_delay_codes.png)
+![Delay Incident Categories](../outputs/04-delay_incidents_treemap.png)
 
 *Figure 5: Treemap showing the distribution of delay incidents by category.*
 
