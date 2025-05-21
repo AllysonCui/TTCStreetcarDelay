@@ -1,32 +1,24 @@
+"""
+TTC Delay Incident Analysis Script
+
+This script categorizes TTC delay incidents based on their code prefixes and creates
+two visualizations:
+1. A treemap showing the distribution of delay incidents by category
+2. A bar chart of the top 15 specific delay codes with their descriptions
+"""
+
 import polars as pl
 import matplotlib.pyplot as plt
 import squarify
 import seaborn as sns
 
-
 def categorize_incidents(df):
-    # Create a function to map code prefixes to categories
-    def map_code_to_category(code_prefix):
-        if code_prefix == 'ET':
-            return 'Equipment [ET]'
-        elif code_prefix == 'MT':
-            return 'Miscellaneous Operations [MT]'
-        elif code_prefix == 'PT':
-            return 'Plant [PT]'
-        elif code_prefix == 'ST':
-            return 'Security [ST]'
-        elif code_prefix == 'TT':
-            return 'Transportation [TT]'
-        else:
-            # Handle any other prefixes that might exist
-            return 'Other'
-
-    # Create a new column with just the first two characters of the code
+    # Extract code prefix and map to categories
     df = df.with_columns(
         pl.col("Code").str.slice(0, 2).alias("code_prefix")
     )
 
-    # Apply the mapping function to get categories
+    # Map prefixes to descriptive categories
     df = df.with_columns(
         pl.col("code_prefix").replace({
             'ET': 'Equipment [ET]',
@@ -38,7 +30,6 @@ def categorize_incidents(df):
     )
 
     return df
-
 
 def create_treemap(df):
     # Count incidents by category
@@ -54,10 +45,7 @@ def create_treemap(df):
     # Prepare data for treemap
     labels = []
     sizes = []
-
-    # Create sorted items for consistent order
-    sorted_items = sorted(category_dict.items(), key=lambda x: x[1],
-                          reverse=True)
+    sorted_items = sorted(category_dict.items(), key=lambda x: x[1], reverse=True)
 
     for category, count in sorted_items:
         labels.append(f"{category} ({count})")
@@ -67,28 +55,19 @@ def create_treemap(df):
     cmap = plt.cm.Blues
     colors = [cmap(0.4 + (i / len(labels)) * 0.6) for i in range(len(labels))]
 
-    # Create the figure
+    # Create and configure the treemap
     plt.figure(figsize=(15, 8))
-
-    # Create treemap
-    squarify.plot(sizes=sizes, label=labels, color=colors, alpha=0.8,
-                  text_kwargs={'fontsize': 12})
-
-    # Add title
+    squarify.plot(sizes=sizes, label=labels, color=colors, alpha=0.8, text_kwargs={'fontsize': 12})
     plt.title('The most common Incidents which cause delays', fontsize=18)
     plt.axis('off')
 
-    # Save the figure to the appropriate location
+    # Save the visualization
     save_path = "../outputs/04-delay_incidents_treemap.png"
     plt.savefig(save_path, bbox_inches='tight', dpi=300)
     plt.close()
 
-    print("Treemap saved as 'delay_incidents_treemap.png'")
-
-
-# Function to analyze and create stacked bar chart
 def create_category_bar_chart(df):
-    # Fill any null values in the Description column with a placeholder
+    # Fill any null values in the Description column
     df = df.with_columns(
         pl.col("Description").fill_null("Unknown")
     )
@@ -101,29 +80,22 @@ def create_category_bar_chart(df):
         .rename({"len": "Count"})
     )
 
-    # Add description and category
+    # Add description and category information
     code_desc_cat = df.select(["Code", "Description", "Category"]).unique()
-
-    # Join counts with descriptions and categories
     code_analysis = code_counts.join(code_desc_cat, on="Code")
-
-    # Get top 15 codes
     top_codes = code_analysis.head(15)
 
     # Convert to pandas for matplotlib plotting
     top_codes_pd = top_codes.to_pandas()
 
-    # Create stacked bar chart
+    # Create and configure the bar chart
     plt.figure(figsize=(15, 8))
     bars = plt.bar(top_codes_pd['Code'], top_codes_pd['Count'],
                    color=sns.color_palette("Blues_d", len(top_codes_pd)))
 
     # Add descriptions as annotations
     for i, (_, row) in enumerate(top_codes_pd.iterrows()):
-        # Handle any None values in Description
-        description = row['Description'] if row[
-                                                'Description'] is not None else "Unknown"
-
+        description = row['Description'] if row['Description'] is not None else "Unknown"
         plt.annotate(f"{description}",
                      xy=(i, row['Count']),
                      xytext=(0, 5),
@@ -138,26 +110,16 @@ def create_category_bar_chart(df):
     plt.xticks(rotation=45)
     plt.tight_layout()
 
-    # Save the figure to the appropriate location
+    # Save the visualization
     save_path = "../outputs/04-top_delay_codes.png"
     plt.savefig(save_path, bbox_inches='tight', dpi=300)
     plt.close()
 
-    print("Bar chart saved as 'top_delay_codes.png'")
-
-
+# Main execution
 data_path = "../data/analysis_data/2025plus_data.csv"
-
-# Load the main dataset directly from the specified path
 df = pl.read_csv(data_path)
 
-# Categorize incidents
+# Process data and create visualizations
 df = categorize_incidents(df)
-
-# Create and save treemap
 create_treemap(df)
-
-# Create and save bar chart
 create_category_bar_chart(df)
-
-print("Analysis complete!")
